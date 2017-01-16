@@ -26,10 +26,13 @@ public class PrimeDice {
 
     private static String API_KEY;
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36";
-    private static double betAmount = 2;
+    private static double betAmount = 1;
+    private  static double baseBet = 1;
     private static double target = 50; //0 - 99.99
     private static final String LESS = "<";
     private static final String MORE = ">";
+    public static String condition = MORE;
+    private static int seedChangeFrequency = 300;   //change seed after indicated amount of bets
 
     public UserStats stats = new UserStats();
     public Bet currentBet = new Bet();
@@ -39,22 +42,31 @@ public class PrimeDice {
         dice.login();
         dice.getStats();
         //sample betting loop
-        for (int i = 0; i < 10; i++) {  //TODO: implement betting strategy
+        for (int i = 0; i < 1000; i++) {  //TODO: implement betting strategy
             try {
-                dice.makeBet();
-                Thread.sleep(290);
+                if (i == seedChangeFrequency) {
+                    dice.changeSeed();
+                }
+                if (!dice.makeBet()) {
+                    betAmount *= 2;
+                }
+                else {
+                    betAmount = baseBet;
+                }
+                Thread.sleep(280);
             }
             catch (Exception e) {
+                System.out.println("Check balance");
                 Thread.sleep(1000);
             }
         }
-        dice.changeSeed();
     }
 
     public void login() {
         Scanner in = new Scanner(System.in);
         System.out.println("Enter your API key:");
         API_KEY = in.nextLine();
+        in.close();
     }
 
 
@@ -85,14 +97,14 @@ public class PrimeDice {
 
     }
 
-    public void makeBet() throws Exception {
+    public boolean makeBet() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
         HttpPost post = new HttpPost("https://api.primedice.com/api/bet?api_key=" + API_KEY);
 
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("amount", String.valueOf(betAmount)));
         params.add(new BasicNameValuePair("target", String.valueOf(target)));
-        params.add(new BasicNameValuePair("condition", MORE));
+        params.add(new BasicNameValuePair("condition", condition));
         post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
         CloseableHttpResponse response = client.execute(post);
@@ -111,6 +123,7 @@ public class PrimeDice {
             currentBet.parseBet(bet);
             currentBet.printRoll();
             currentBet.setRollNumber(currentBet.getRollNumber()+1);
+            return currentBet.isWin();
 
         }
         finally {
@@ -133,9 +146,10 @@ public class PrimeDice {
                 throw new Exception("Connection failed: " + status + " " + response.getStatusLine().getReasonPhrase());
             }
             HttpEntity entity = response.getEntity();
-            System.out.println(response);
+            //System.out.println(response);
             String apiOutput = EntityUtils.toString(entity);
-            System.out.println(apiOutput);
+            //System.out.println(apiOutput);
+            System.out.println("Seed changed!");
         }
         finally {
             response.close();
