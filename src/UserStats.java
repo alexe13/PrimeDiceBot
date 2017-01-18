@@ -19,7 +19,7 @@ public class UserStats {
     }
 
 
-    public void parseStats (JSONObject obj) {
+    public void parseStats(JSONObject obj) {
         this.balance = obj.getDouble("balance");
         this.wagered = obj.getDouble("wagered");
         this.profit = obj.getDouble("profit");
@@ -52,10 +52,10 @@ public class UserStats {
         return losses;
     }
 
-    public void printStats () {
+    public void printStats() {
         System.out.println("Your balance is: " + getBalance() + " satoshi");
-        System.out.println("Your have wagered: " + getWagered()/100000000 + " btc");
-        System.out.println("Your total profit is: " + getProfit()/100000000 + " btc");
-        System.out.println("Your winrate so far: " + (int) ((double) getWins()/getBets() * 100) + " %");
+        System.out.println("Your have wagered: " + getWagered() / 100000000 + " btc");
+        System.out.println("Your total profit is: " + getProfit() / 100000000 + " btc");
+        System.out.println("Your winrate so far: " + (int) ((double) getWins() / getBets() * 100) + " %");
     }
 }

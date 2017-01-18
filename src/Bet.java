@@ -10,16 +10,26 @@ public class Bet {
     private double amount;
     private double target;
     private double profit;
+    private static double sessionProfit = 0;
     private boolean isWin;
     private String condition;
     private double roll;
-    private static int rollNumber = 1;
+    private static int rollNumber = 0;
 
     public static void setRollNumber(int rollNumber) {
         Bet.rollNumber = rollNumber;
     }
 
-    public Bet () {
+    public double getSessionProfit() {
+        return (double) ((int) Math.round(sessionProfit * 100)) / 100;
+    }
+
+    public void setSessionProfit(double sessionProfit) {
+        this.sessionProfit = sessionProfit;
+    }
+
+    public Bet() {
+
 
     }
 
@@ -41,7 +51,7 @@ public class Bet {
     }
 
     public double getProfit() {
-        return (double)((int) Math.round(profit*100))/100;       //round profit to 2 decimals
+        return (double) ((int) Math.round(profit * 100)) / 100;       //round profit to 2 decimals
     }
 
     public boolean isWin() {
@@ -66,6 +76,11 @@ public class Bet {
     }
 
     public void printRoll() {
-        System.out.println("№: " + getRollNumber() + " " + getCondition() + getTarget() + " Amount: " + getAmount() + " Roll: " + getRoll() + " " + getResult() + " Profit: " + getProfit());
+        System.out.println("№: " + getRollNumber() + " "
+                + getCondition() + getTarget() +
+                " Amount: " + getAmount() +
+                " Roll: " + getRoll() + " "
+                + getResult() + " Profit: "
+                + getProfit() + " Session Profit: " + getSessionProfit());
     }
 }
