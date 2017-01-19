@@ -23,23 +23,25 @@ import java.util.UUID;
  */
 public class PrimeDice {
 
+    //basic variables
     private static String API_KEY;
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36";
+    private static final String LESS = "<";
+    private static final String MORE = ">";
+    private static double profit = 0;
+    private static int rollNumber = 1;
+
+    //betting parameters
     private static double betAmount = 1;
     private static double baseBet = 1;
     private static double target = 49.5; //0 - 99.99
-    private static final String LESS = "<";
-    private static final String MORE = ">";
     public static String condition = MORE;
     private static int seedChangeFrequency = 100;   //change seed after indicated amount of bets
-    private static double profit = 0;
-    private static int rollTarget = 100;
-    private static int profitTarget = 4;    // target profit in satoshi
-    private static int rollNumber = 1;
+    private static int rollTarget = 300;
+    private static int profitTarget = 400;    // target profit in satoshi
     private static double onLooseMultiplier = 2.5;
 
-    public UserStats stats = new UserStats();
-
+    public static UserStats stats = new UserStats();
     public static PrimeDice dice = new PrimeDice();
 
     public static void main(String[] args) throws Exception {
@@ -54,10 +56,18 @@ public class PrimeDice {
                 if (rollNumber == seedChangeFrequency) {
                     dice.changeSeed();
                 }
+
+                if (stats.getBalance() < betAmount) {
+                    System.out.println("Not enough funds.");
+                    Thread.sleep(3000);
+                    System.exit(0);
+                }
+
                 currentBet = dice.makeBet();
                 currentBet.printRoll();
                 rollNumber = currentBet.getRollNumber();
                 profit = currentBet.getSessionProfit();
+
 
                 if (!currentBet.isWin())
                 {
@@ -65,9 +75,9 @@ public class PrimeDice {
                 } else {
                     betAmount = baseBet;
                 }
-                Thread.sleep(300);
+                Thread.sleep(330);
             } catch (Exception e) {
-                System.out.println("Error!");
+                System.out.println(e);
                 Thread.sleep(1000);
             }
         }
