@@ -19,7 +19,7 @@ import java.util.UUID;
 
 
 /**
- * Created by Alex on 02.01.2017.
+ * Main class, where API queries and betting strategy is implemented
  */
 public class PrimeDice {
 
@@ -30,6 +30,8 @@ public class PrimeDice {
     private static final String MORE = ">";
     private static double profit = 0;
     private static int rollNumber = 1;
+    private static int currentLooseStreak = 0;
+    private boolean isLooseStreak = false;
 
     //betting parameters
     private static double betAmount = 1;
@@ -40,19 +42,34 @@ public class PrimeDice {
     private static int rollTarget = 300;
     private static int profitTarget = 400;    // target profit in satoshi
     private static double onLooseMultiplier = 2.5;
+    private static int preBet = 0;
 
+    //class instances
     public static UserStats stats = new UserStats();
     public static PrimeDice dice = new PrimeDice();
 
     public static void main(String[] args) throws Exception {
-
-        Bet currentBet;
-
         dice.login();
         dice.getStats();
+        Thread.sleep(1000);
+        dice.doMartingale();
+    }
 
+    public void doMartingale() throws Exception {
+
+        Bet currentBet;
         while (rollNumber < rollTarget && profit < profitTarget) {
             try {
+                if (preBet > 0) {
+                    if (!isLooseStreak) {
+                        betAmount = 0;
+                    }
+                    if (currentLooseStreak >= preBet && !isLooseStreak) {
+                        betAmount = baseBet;
+                        isLooseStreak = true;
+                    }
+                }
+
                 if (rollNumber == seedChangeFrequency) {
                     dice.changeSeed();
                 }
@@ -68,17 +85,17 @@ public class PrimeDice {
                 rollNumber = currentBet.getRollNumber();
                 profit = currentBet.getSessionProfit();
 
-
-                if (!currentBet.isWin())
-                {
+                if (!currentBet.isWin()) {
+                    currentLooseStreak++;
                     betAmount *= onLooseMultiplier;
                 } else {
+                    currentLooseStreak = 0;
                     betAmount = baseBet;
+                    isLooseStreak = false;
                 }
-                Thread.sleep(330);
+                Thread.sleep(300);
             } catch (Exception e) {
                 System.out.println(e);
-                Thread.sleep(1000);
             }
         }
     }
@@ -106,7 +123,7 @@ public class PrimeDice {
             }
             HttpEntity entity = response.getEntity();
             String apiOutput = EntityUtils.toString(entity);
-            System.out.println(apiOutput);
+            //System.out.println(apiOutput);
 
             JSONObject user = new JSONObject(apiOutput).getJSONObject("user");
             stats.parseStats(user);
@@ -114,7 +131,6 @@ public class PrimeDice {
         } finally {
             response.close();
         }
-
     }
 
     public Bet makeBet() throws Exception {
@@ -151,7 +167,7 @@ public class PrimeDice {
         }
     }
 
-    public void changeSeed() throws Exception { //TODO: fix 429 HTTP error
+    public void changeSeed() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
         HttpPost post = new HttpPost("https://api.primedice.com/api/seed?api_key=" + API_KEY);
 

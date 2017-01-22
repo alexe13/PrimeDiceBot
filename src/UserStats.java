@@ -53,9 +53,11 @@ public class UserStats {
     }
 
     public void printStats() {
-        System.out.println("Your balance is: " + getBalance() + " satoshi");
-        System.out.println("Your have wagered: " + getWagered() / 100000000 + " btc");
-        System.out.println("Your total profit is: " + getProfit() / 100000000 + " btc");
-        System.out.println("Your winrate so far: " + (int) ((double) getWins() / getBets() * 100) + " %");
+        System.out.println("************ USER STATS ****************");
+        System.out.println("Balance: " + getBalance() + " satoshi");
+        System.out.println("Total wagered: " + getWagered() / 100000000 + " btc");
+        System.out.println("Total profit: " + getProfit() / 100000000 + " btc");
+        System.out.println("Luck: " + (int) ((double) getWins() / getBets() * 100) + " %");
+        System.out.println("****************************************");
     }
 }
