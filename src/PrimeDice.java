@@ -12,6 +12,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -26,23 +27,22 @@ public class PrimeDice {
     //basic variables
     private static String API_KEY;
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36";
-    private static final String LESS = "<";
-    private static final String MORE = ">";
     private static double profit = 0;
     private static int rollNumber = 1;
     private static int currentLooseStreak = 0;
     private boolean isLooseStreak = false;
+    private static String configFile;
 
     //betting parameters
     private static double betAmount = 1;
-    private static double baseBet = 1;
-    private static double target = 49.5; //0 - 99.99
-    public static String condition = MORE;
+    private static double baseBet;
+    private static double target;
+    public static String condition;
     private static int seedChangeFrequency = 100;   //change seed after indicated amount of bets
-    private static int rollTarget = 300;
+    private static int rollTarget;
     private static int profitTarget = 400;    // target profit in satoshi
-    private static double onLooseMultiplier = 2.5;
-    private static int preBet = 0;
+    private static double onLooseMultiplier;
+    private static int preBet;
 
     //class instances
     public static UserStats stats = new UserStats();
@@ -50,16 +50,67 @@ public class PrimeDice {
 
     public static void main(String[] args) throws Exception {
         dice.login();
-        dice.getStats();
         Thread.sleep(1000);
         dice.doMartingale();
     }
+
+
+    public void login() {
+        Scanner in = new Scanner(System.in);
+        System.out.println("Please specify path to config.txt file:");
+        configFile = in.nextLine();
+        parseConfig(configFile);
+        try {
+            dice.getStats();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        finally {
+            in.close();
+        }
+    }
+
+    public void parseConfig (String config) {
+        ArrayList<String> parameters = new ArrayList<>();
+        try {
+            String line;
+            BufferedReader reader = new BufferedReader(new FileReader(config));
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("*") || line.isEmpty()) continue;
+                parameters.add(line.trim());
+            }
+            API_KEY = parameters.get(0);
+            baseBet = Integer.parseInt(parameters.get(1));
+            target = Double.parseDouble(parameters.get(2));
+            condition = parameters.get(3);
+            rollTarget = Integer.parseInt(parameters.get(4));
+            profitTarget = Integer.parseInt(parameters.get(5));
+            onLooseMultiplier = Double.parseDouble(parameters.get(6));
+            preBet = Integer.parseInt(parameters.get(7));
+            seedChangeFrequency = Integer.parseInt(parameters.get(8));
+        }
+        catch (FileNotFoundException f) {
+            System.out.println("File not found.");
+        }
+        catch (IOException io) {
+
+        }
+    }
+
 
     public void doMartingale() throws Exception {
 
         Bet currentBet;
         while (rollNumber < rollTarget && profit < profitTarget) {
             try {
+
+                if (stats.getBalance() < betAmount) {
+                    System.out.println("Not enough funds.");
+                    Thread.sleep(3000);
+                    System.exit(0);
+                }
+
                 if (preBet > 0) {
                     if (!isLooseStreak) {
                         betAmount = 0;
@@ -72,12 +123,6 @@ public class PrimeDice {
 
                 if (rollNumber == seedChangeFrequency) {
                     dice.changeSeed();
-                }
-
-                if (stats.getBalance() < betAmount) {
-                    System.out.println("Not enough funds.");
-                    Thread.sleep(3000);
-                    System.exit(0);
                 }
 
                 currentBet = dice.makeBet();
@@ -100,12 +145,6 @@ public class PrimeDice {
         }
     }
 
-    public void login() {
-        Scanner in = new Scanner(System.in);
-        System.out.println("Enter your API key:");
-        API_KEY = in.nextLine();
-        in.close();
-    }
 
 
     public void getStats() throws Exception {
@@ -119,11 +158,14 @@ public class PrimeDice {
             int status = response.getStatusLine().getStatusCode();
 
             if (status != 200) {
+                if (status == 401) {
+                    System.out.println("Invalid API key.");
+                    System.exit(0);
+                }
                 throw new Exception("Connection failed: " + status + " " + response.getStatusLine().getReasonPhrase());
             }
             HttpEntity entity = response.getEntity();
             String apiOutput = EntityUtils.toString(entity);
-            //System.out.println(apiOutput);
 
             JSONObject user = new JSONObject(apiOutput).getJSONObject("user");
             stats.parseStats(user);
@@ -152,7 +194,6 @@ public class PrimeDice {
 
             HttpEntity entity = response.getEntity();
             String apiOutput = EntityUtils.toString(entity);
-            //System.out.println(apiOutput.toString());
 
             JSONObject jsonBet = new JSONObject(apiOutput).getJSONObject("bet");
             Bet bet = new Bet();
@@ -182,9 +223,7 @@ public class PrimeDice {
                 throw new Exception("Connection failed: " + status + " " + response.getStatusLine().getReasonPhrase());
             }
             HttpEntity entity = response.getEntity();
-            //System.out.println(response);
             String apiOutput = EntityUtils.toString(entity);
-            //System.out.println(apiOutput);
             System.out.println("Seed changed!");
         } finally {
             response.close();
