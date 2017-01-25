@@ -20,7 +20,8 @@ import java.util.UUID;
 
 
 /**
- * Main class, where API queries and betting strategy is implemented
+ * @author Alex
+ * Main class that handles API requests and implements betting strategy
  */
 public class PrimeDice {
 
@@ -38,9 +39,9 @@ public class PrimeDice {
     private static double baseBet;
     private static double target;
     public static String condition;
-    private static int seedChangeFrequency = 100;   //change seed after indicated amount of bets
+    private static int seedChangeFrequency;
     private static int rollTarget;
-    private static int profitTarget = 400;    // target profit in satoshi
+    private static int profitTarget;
     private static double onLooseMultiplier;
     private static int preBet;
 
@@ -48,12 +49,12 @@ public class PrimeDice {
     public static UserStats stats = new UserStats();
     public static PrimeDice dice = new PrimeDice();
 
+    //main method
     public static void main(String[] args) throws Exception {
         dice.login();
         Thread.sleep(1000);
         dice.doMartingale();
     }
-
 
     public void login() {
         Scanner in = new Scanner(System.in);
@@ -71,6 +72,7 @@ public class PrimeDice {
         }
     }
 
+    //fetch parameters from config file
     public void parseConfig (String config) {
         ArrayList<String> parameters = new ArrayList<>();
         try {
@@ -80,6 +82,12 @@ public class PrimeDice {
                 if (line.startsWith("*") || line.isEmpty()) continue;
                 parameters.add(line.trim());
             }
+
+            if (parameters.size() < 9) {
+                System.out.println("Error: config.txt is corrupted, please check parameters!");
+                System.exit(0);
+            }
+
             API_KEY = parameters.get(0);
             baseBet = Integer.parseInt(parameters.get(1));
             target = Double.parseDouble(parameters.get(2));
@@ -98,18 +106,12 @@ public class PrimeDice {
         }
     }
 
-
+    //main betting loop
     public void doMartingale() throws Exception {
 
         Bet currentBet;
         while (rollNumber < rollTarget && profit < profitTarget) {
             try {
-
-                if (stats.getBalance() < betAmount) {
-                    System.out.println("Not enough funds.");
-                    Thread.sleep(3000);
-                    System.exit(0);
-                }
 
                 if (preBet > 0) {
                     if (!isLooseStreak) {
@@ -144,8 +146,6 @@ public class PrimeDice {
             }
         }
     }
-
-
 
     public void getStats() throws Exception {
 
@@ -189,6 +189,10 @@ public class PrimeDice {
         try {
             int status = response.getStatusLine().getStatusCode();
             if (status != 200) {
+                if (status == 400) {
+                    System.out.printf("Not enough funds or bad betting parameters.");
+                    System.exit(0);
+                }
                 throw new Exception("Connection failed: " + status + " " + response.getStatusLine().getReasonPhrase());
             }
 
@@ -222,8 +226,6 @@ public class PrimeDice {
             if (status != 200) {
                 throw new Exception("Connection failed: " + status + " " + response.getStatusLine().getReasonPhrase());
             }
-            HttpEntity entity = response.getEntity();
-            String apiOutput = EntityUtils.toString(entity);
             System.out.println("Seed changed!");
         } finally {
             response.close();

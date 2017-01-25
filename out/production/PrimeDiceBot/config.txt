@@ -17,10 +17,10 @@
 >
 
 * Number of automated rolls:
-300
+100
 
 * Target profit in satoshi:
-3000 
+300 
 
 * Multiplier on lost bet:
 2
@@ -28,5 +28,5 @@
 *Pre-betting mode. Bets zero (nothing) until a specified loose streak appears. Enter pre-bet loose streak length or 0 to turn off:
 0
 
-* Automated seed change. Change seed after indicated amount of bets (recommended > 150):
-250
+* Automated seed change. Change seed after indicated amount of bets (recommended > 100):
+150
