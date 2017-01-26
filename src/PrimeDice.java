@@ -83,7 +83,7 @@ public class PrimeDice {
                 parameters.add(line.trim());
             }
 
-            if (parameters.size() < 9) {
+            if (parameters.size() != 9) {
                 System.out.println("Error: config.txt is corrupted, please check parameters!");
                 System.exit(0);
             }
@@ -100,6 +100,7 @@ public class PrimeDice {
         }
         catch (FileNotFoundException f) {
             System.out.println("File not found.");
+            System.exit(0);
         }
         catch (IOException io) {
 

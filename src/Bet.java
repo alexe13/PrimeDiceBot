@@ -75,12 +75,19 @@ public class Bet {
         else return "Loss";
     }
 
-    public void printRoll() {
-        System.out.println("№: " + getRollNumber() + " "
+    public void printRoll() {  //formatted output for cleaner representation in the console
+        String numberFormat = String.format("%1$-6s", getRollNumber());
+        String amountFormat = String.format("%1$-9s", getAmount());
+        String rollFormat = String.format("%1$-7s", getRoll());
+        String resultFormat = String.format("%1$-7s", getResult());
+        String profitFormat = String.format("%1$-9s", getProfit());
+        String sessionProfitFormat = String.format("%1$-10s", getSessionProfit());
+
+        System.out.println("№:" + numberFormat + " "
                 + getCondition() + getTarget() +
-                " Amount: " + getAmount() +
-                " Roll: " + getRoll() + " "
-                + getResult() + " Profit: "
-                + getProfit() + " Session Profit: " + getSessionProfit());
+                "    Amount: " + amountFormat +
+                " Roll: " + rollFormat + " "
+                + resultFormat + " Profit: "
+                + profitFormat + " Session Profit: " + sessionProfitFormat);
     }
 }
