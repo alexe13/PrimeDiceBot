@@ -8,7 +8,7 @@ Uses org.json (https://github.com/stleary/JSON-java) and Apache HTTPComponents (
 - Pre-roll
 - Automated seed change
 
-To use the bot:
+<b>To use the bot:</b>
 - Retrieve your API key at: https://primedice.com/api
 - Download both .jar file and config.txt file
 - Edit settings in config file
