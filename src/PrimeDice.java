@@ -124,7 +124,7 @@ public class PrimeDice {
                     }
                 }
 
-                if (rollNumber == seedChangeFrequency) {
+                if (rollNumber % seedChangeFrequency == 0) {
                     dice.changeSeed();
                 }
 
