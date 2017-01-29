@@ -44,6 +44,7 @@ public class PrimeDice {
     private static int profitTarget;
     private static double onLooseMultiplier;
     private static int preBet;
+    private static int maxLooseSreak;
 
     //class instances
     public static UserStats stats = new UserStats();
@@ -83,7 +84,7 @@ public class PrimeDice {
                 parameters.add(line.trim());
             }
 
-            if (parameters.size() != 9) {
+            if (parameters.size() != 10) {
                 System.out.println("Error: config.txt is corrupted, please check parameters!");
                 System.exit(0);
             }
@@ -97,6 +98,7 @@ public class PrimeDice {
             onLooseMultiplier = Double.parseDouble(parameters.get(6));
             preBet = Integer.parseInt(parameters.get(7));
             seedChangeFrequency = Integer.parseInt(parameters.get(8));
+            maxLooseSreak = Integer.parseInt(parameters.get(9));
         }
         catch (FileNotFoundException f) {
             System.out.println("File not found.");
@@ -122,6 +124,10 @@ public class PrimeDice {
                         betAmount = baseBet;
                         isLooseStreak = true;
                     }
+                }
+
+                if (maxLooseSreak > 0 && currentLooseStreak >= maxLooseSreak ) {
+                    betAmount = baseBet;
                 }
 
                 if (rollNumber % seedChangeFrequency == 0) {
