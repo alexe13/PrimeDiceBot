@@ -1,4 +1,4 @@
-package src;
+package org.alex;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
