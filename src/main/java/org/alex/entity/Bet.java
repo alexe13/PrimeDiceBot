@@ -1,10 +1,13 @@
-package org.alex;
+package org.alex.entity;
 
+import lombok.Data;
+import org.alex.config.ConfigParameters;
 import org.json.JSONObject;
 
 /**
  * Created by Alex on 08.01.2017.
  */
+@Data
 public class Bet {
 
     private double amount;
@@ -20,17 +23,16 @@ public class Bet {
         Bet.rollNumber = rollNumber;
     }
 
+    public static int getRollNumber() {
+        return rollNumber;
+    }
+
     public double getSessionProfit() {
         return (double) ((int) Math.round(sessionProfit * 100)) / 100;
     }
 
     public void setSessionProfit(double sessionProfit) {
-        this.sessionProfit = sessionProfit;
-    }
-
-    public Bet() {
-
-
+        Bet.sessionProfit = sessionProfit;
     }
 
     public void parseBet(JSONObject obj) {
@@ -42,33 +44,10 @@ public class Bet {
         this.roll = obj.getDouble("roll");
     }
 
-    public double getAmount() {
-        return amount;
-    }
-
-    public double getTarget() {
-        return target;
-    }
-
     public double getProfit() {
         return (double) ((int) Math.round(profit * 100)) / 100;       //round profit to 2 decimals
     }
 
-    public boolean isWin() {
-        return isWin;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public double getRoll() {
-        return roll;
-    }
-
-    public int getRollNumber() {
-        return rollNumber;
-    }
 
     public String getResult() {
         if (isWin) return "Win";
@@ -76,12 +55,12 @@ public class Bet {
     }
 
     public void printRoll() {  //formatted output for cleaner representation in the console
-        String numberFormat = String.format("%1$-6s", getRollNumber());
+        String numberFormat = String.format("%1$-10s", getRollNumber()+"/"+ ConfigParameters.getInstance().getRollNumber());
         String amountFormat = String.format("%1$-9s", getAmount());
         String rollFormat = String.format("%1$-7s", getRoll());
         String resultFormat = String.format("%1$-7s", getResult());
         String profitFormat = String.format("%1$-9s", getProfit());
-        String sessionProfitFormat = String.format("%1$-10s", getSessionProfit());
+        String sessionProfitFormat = String.format("%1$-20s", getSessionProfit()+"/"+ConfigParameters.getInstance().getProfitTarget());
 
         System.out.println("№:" + numberFormat + " "
                 + getCondition() + getTarget() +

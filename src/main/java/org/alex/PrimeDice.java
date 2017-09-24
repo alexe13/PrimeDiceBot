@@ -1,5 +1,9 @@
 package org.alex;
 
+import org.alex.config.ConfigParameters;
+import org.alex.config.ConfigReader;
+import org.alex.entity.Bet;
+import org.alex.entity.UserStats;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -12,7 +16,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -26,29 +29,18 @@ import java.util.UUID;
 public class PrimeDice {
 
     //basic variables
-    private static String API_KEY;
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36";
     private static double profit = 0;
     private static int rollNumber = 1;
     private static int currentLooseStreak = 0;
     private boolean isLooseStreak = false;
     private static String configFile;
-
-    //betting parameters
-    private static double betAmount = 1;
-    private static double baseBet;
-    private static double target;
-    public static String condition;
-    private static int seedChangeFrequency;
-    private static int rollTarget;
-    private static int profitTarget;
-    private static double onLooseMultiplier;
-    private static int preBet;
-    private static int maxLooseSreak;
+    private double betAmount = 0;
 
     //class instances
-    public static UserStats stats = new UserStats();
-    public static PrimeDice dice = new PrimeDice();
+    private static UserStats stats = new UserStats();
+    private static PrimeDice dice = new PrimeDice();
+    private static ConfigParameters configParameters;
 
     //main method
     public static void main(String[] args) throws Exception {
@@ -57,107 +49,79 @@ public class PrimeDice {
         dice.doMartingale();
     }
 
-    public void login() {
+    private void login() {
         Scanner in = new Scanner(System.in);
         System.out.println("Please specify path to config.txt file:");
         configFile = in.nextLine();
-        parseConfig(configFile);
+        configParameters = ConfigReader.parseConfig(configFile);
         try {
             dice.getStats();
+            betAmount = configParameters.getBetAmount();
         }
         catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
         finally {
             in.close();
         }
     }
 
-    //fetch parameters from config file
-    public void parseConfig (String config) {
-        ArrayList<String> parameters = new ArrayList<>();
-        try {
-            String line;
-            BufferedReader reader = new BufferedReader(new FileReader(config));
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("*") || line.isEmpty()) continue;
-                parameters.add(line.trim());
-            }
-
-            if (parameters.size() != 10) {
-                System.out.println("Error: config.txt is corrupted, please check parameters!");
-                System.exit(0);
-            }
-
-            API_KEY = parameters.get(0);
-            baseBet = Integer.parseInt(parameters.get(1));
-            target = Double.parseDouble(parameters.get(2));
-            condition = parameters.get(3);
-            rollTarget = Integer.parseInt(parameters.get(4));
-            profitTarget = Integer.parseInt(parameters.get(5));
-            onLooseMultiplier = Double.parseDouble(parameters.get(6));
-            preBet = Integer.parseInt(parameters.get(7));
-            seedChangeFrequency = Integer.parseInt(parameters.get(8));
-            maxLooseSreak = Integer.parseInt(parameters.get(9));
-        }
-        catch (FileNotFoundException f) {
-            System.out.println("File not found.");
-            System.exit(0);
-        }
-        catch (IOException io) {
-
-        }
-    }
-
     //main betting loop
-    public void doMartingale() throws Exception {
+    private void doMartingale() throws Exception {
 
         Bet currentBet;
-        while (rollNumber < rollTarget && profit < profitTarget) {
+        while (rollNumber < configParameters.getRollNumber() && profit < configParameters.getProfitTarget()) {
             try {
 
-                if (preBet > 0) {
+                if (configParameters.getPreBet() > 0) {
                     if (!isLooseStreak) {
                         betAmount = 0;
                     }
-                    if (currentLooseStreak >= preBet && !isLooseStreak) {
-                        betAmount = baseBet;
+                    if (currentLooseStreak >= configParameters.getPreBet() && !isLooseStreak) {
+                        betAmount = configParameters.getBaseBet();
                         isLooseStreak = true;
                     }
                 }
 
-                if (maxLooseSreak > 0 && currentLooseStreak >= maxLooseSreak ) {
-                    betAmount = baseBet;
+                if (configParameters.getMaxLooseStreak() > 0 && currentLooseStreak >= configParameters.getMaxLooseStreak() && configParameters.getPreBet() == 0) {
+                    if (configParameters.getTargetOnLooseStreak() != 0) {
+                        System.out.println("Loose streak of " + currentLooseStreak + " ! Setting new target: " +
+                                configParameters.getConditionOnLooseStreak() + configParameters.getTargetOnLooseStreak());
+                        configParameters.setCondition(configParameters.getConditionOnLooseStreak());
+                        configParameters.setTarget(configParameters.getTargetOnLooseStreak());
+                    } else {
+                        betAmount = configParameters.getBaseBet();
+                    }
                 }
 
-                if (rollNumber % seedChangeFrequency == 0) {
+                if (rollNumber % configParameters.getSeedChangeFrequency() == 0) {
                     dice.changeSeed();
                 }
 
                 currentBet = dice.makeBet();
                 currentBet.printRoll();
-                rollNumber = currentBet.getRollNumber();
+                rollNumber = Bet.getRollNumber();
                 profit = currentBet.getSessionProfit();
 
                 if (!currentBet.isWin()) {
                     currentLooseStreak++;
-                    betAmount *= onLooseMultiplier;
+                    betAmount *= configParameters.getOnLooseMultiplier();
                 } else {
                     currentLooseStreak = 0;
-                    betAmount = baseBet;
+                    betAmount = configParameters.getBaseBet();
                     isLooseStreak = false;
                 }
                 Thread.sleep(300);
             } catch (Exception e) {
-                System.out.println(e);
+                e.printStackTrace();
             }
         }
     }
 
-    public void getStats() throws Exception {
+    private void getStats() throws Exception {
 
         CloseableHttpClient client = HttpClients.createDefault();
-        String url = "https://api.primedice.com/api/users/1?api_key=" + API_KEY;
+        String url = "https://api.primedice.com/api/users/1?api_key=" + configParameters.getAPI_KEY();
         HttpGet get = new HttpGet(url);
         get.addHeader("Agent", USER_AGENT);
         CloseableHttpResponse response = client.execute(get);
@@ -182,14 +146,14 @@ public class PrimeDice {
         }
     }
 
-    public Bet makeBet() throws Exception {
+    private Bet makeBet() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost post = new HttpPost("https://api.primedice.com/api/bet?api_key=" + API_KEY);
+        HttpPost post = new HttpPost("https://api.primedice.com/api/bet?api_key=" + configParameters.getAPI_KEY());
 
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("amount", String.valueOf(betAmount)));
-        params.add(new BasicNameValuePair("target", String.valueOf(target)));
-        params.add(new BasicNameValuePair("condition", condition));
+        params.add(new BasicNameValuePair("target", String.valueOf(configParameters.getTarget())));
+        params.add(new BasicNameValuePair("condition", configParameters.getCondition()));
         post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
         CloseableHttpResponse response = client.execute(post);
@@ -209,7 +173,7 @@ public class PrimeDice {
             JSONObject jsonBet = new JSONObject(apiOutput).getJSONObject("bet");
             Bet bet = new Bet();
             bet.parseBet(jsonBet);
-            bet.setRollNumber(bet.getRollNumber()+1);
+            Bet.setRollNumber(bet.getRollNumber()+1);
             bet.setSessionProfit(bet.getSessionProfit()+bet.getProfit());
 
             return bet;
@@ -219,11 +183,11 @@ public class PrimeDice {
         }
     }
 
-    public void changeSeed() throws Exception {
+    private void changeSeed() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost post = new HttpPost("https://api.primedice.com/api/seed?api_key=" + API_KEY);
+        HttpPost post = new HttpPost("https://api.primedice.com/api/seed?api_key=" + configParameters.getAPI_KEY());
 
-        List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+        List<NameValuePair> params = new ArrayList<>(1);
         params.add(new BasicNameValuePair("seed", generateRandomString()));
         post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
@@ -239,7 +203,7 @@ public class PrimeDice {
         }
     }
 
-    public String generateRandomString() {
+    private String generateRandomString() {
         return UUID.randomUUID().toString().substring(0, 30);
     }
 }

@@ -17,6 +17,20 @@
                 <target>1.8</target>
             </configuration>
         </plugin>
+
+        <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+                <archive>
+                    <manifest>
+                        <mainClass>org.alex.PrimeDice</mainClass>
+                    </manifest>
+                </archive>
+                <descriptorRefs>
+                    <descriptorRef>jar-with-dependencies</descriptorRef>
+                </descriptorRefs>
+            </configuration>
+        </plugin>
     </plugins>
     </build>
 
@@ -38,6 +52,13 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient-win</artifactId>
             <version>4.5.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.18</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>

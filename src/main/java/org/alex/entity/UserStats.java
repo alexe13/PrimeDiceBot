@@ -1,10 +1,13 @@
-package org.alex;
+package org.alex.entity;
 
+import lombok.Data;
+import org.alex.config.ConfigParameters;
 import org.json.JSONObject;
 
 /**
  * Created by Alex on 02.01.2017.
  */
+@Data
 public class UserStats {
 
     private double balance;
@@ -13,11 +16,6 @@ public class UserStats {
     private int bets;
     private int wins;
     private int losses;
-
-    public UserStats() {
-
-    }
-
 
     public void parseStats(JSONObject obj) {
         this.balance = obj.getDouble("balance");
@@ -28,30 +26,6 @@ public class UserStats {
         this.losses = obj.getInt("losses");
     }
 
-    public double getBalance() {
-        return balance;
-    }
-
-    public double getWagered() {
-        return wagered;
-    }
-
-    public double getProfit() {
-        return profit;
-    }
-
-    public int getBets() {
-        return bets;
-    }
-
-    public int getWins() {
-        return wins;
-    }
-
-    public int getLosses() {
-        return losses;
-    }
-
     public void printStats() {
         System.out.println("************ USER STATS ****************");
         System.out.println("Balance: " + getBalance() + " satoshi");
@@ -59,5 +33,8 @@ public class UserStats {
         System.out.println("Total profit: " + getProfit() / 100000000 + " btc");
         System.out.println("Luck: " + (int) ((double) getWins() / getBets() * 100) + " %");
         System.out.println("****************************************");
+        if (ConfigParameters.getInstance().getPreBet() !=0) {
+            System.out.println("Pre-bet is ON");
+        }
     }
 }
