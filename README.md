@@ -12,8 +12,8 @@ This is a console bitcoin betting bot for PrimeDice.com.
 
 <b>To use the bot:</b>
 - Retrieve your API key at: https://primedice.com/api
-- Download both .jar file and config.txt file
+- Download the archive from releases page
 - Paste your API key in the config file
 - Edit betting settings in config file
-- Open console (Start->Run->cmd.exe), navigate to the folder with .jar, type <b>java -jar PrimeDiceBot.jar</b>
+- Execute .bat file, or open console (Start->Run->cmd.exe), navigate to the folder with .jar, type <b>java -jar PrimeDiceBot.jar</b>
 - Enter the path to config file
