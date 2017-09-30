@@ -19,8 +19,7 @@ public class ConfigParameters {
     private double onLooseMultiplier;
     private int preBet;
     private int maxLooseStreak;
-    private double targetOnLooseStreak;
-    private String conditionOnLooseStreak;
+    private int adjustTargetOnLooseStreak;
 
     private static ConfigParameters instance;
 

@@ -30,8 +30,7 @@ public class ConfigReader {
             configParameters.setPreBet(Integer.parseInt(properties.getProperty("preBet").trim()));
             configParameters.setSeedChangeFrequency(Integer.parseInt(properties.getProperty("seedChangeFrequency").trim()));
             configParameters.setMaxLooseStreak(Integer.parseInt(properties.getProperty("maxLooseStreak").trim()));
-            configParameters.setTargetOnLooseStreak(Double.parseDouble(properties.getProperty("targetOnLooseStreak").trim()));
-            configParameters.setConditionOnLooseStreak(properties.getProperty("conditionOnLooseStreak").trim());
+            configParameters.setAdjustTargetOnLooseStreak(Integer.parseInt(properties.getProperty("adjustTargetOnLooseStreak").trim()));
 
         } catch (FileNotFoundException e) {
             System.out.println("Config file not found!");

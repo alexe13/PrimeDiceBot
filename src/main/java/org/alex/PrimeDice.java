@@ -36,6 +36,7 @@ public class PrimeDice {
     private boolean isLooseStreak = false;
     private static String configFile;
     private double betAmount = 0;
+    private double currentTarget;
 
     //class instances
     private static UserStats stats = new UserStats();
@@ -54,15 +55,25 @@ public class PrimeDice {
         System.out.println("Please specify path to config.txt file:");
         configFile = in.nextLine();
         configParameters = ConfigReader.parseConfig(configFile);
-        try {
-            dice.getStats();
-            betAmount = configParameters.getBetAmount();
+
+        if ((configParameters.getCondition().equals("<") && configParameters.getAdjustTargetOnLooseStreak() < 0)
+                || (configParameters.getCondition().equals(">") && configParameters.getAdjustTargetOnLooseStreak() > 0)) {
+            System.out.println("WARNING! Your current target adjustment will result in a harder target on loose streaks\r\n" +
+                    "This may lead to a rapid loss of money\r\n" +
+                    "Are you sure you want to continue? (Y/N)");
+            if (!in.nextLine().equalsIgnoreCase("Y")) {
+                System.exit(5);
+            }
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            in.close();
+
+            try {
+                dice.getStats();
+                betAmount = configParameters.getBetAmount();
+                currentTarget = configParameters.getTarget();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                in.close();
         }
     }
 
@@ -84,11 +95,10 @@ public class PrimeDice {
                 }
 
                 if (configParameters.getMaxLooseStreak() > 0 && currentLooseStreak >= configParameters.getMaxLooseStreak() && configParameters.getPreBet() == 0) {
-                    if (configParameters.getTargetOnLooseStreak() != 0) {
-                        System.out.println("Loose streak of " + currentLooseStreak + " ! Setting new target: " +
-                                configParameters.getConditionOnLooseStreak() + configParameters.getTargetOnLooseStreak());
-                        configParameters.setCondition(configParameters.getConditionOnLooseStreak());
-                        configParameters.setTarget(configParameters.getTargetOnLooseStreak());
+                    if (configParameters.getAdjustTargetOnLooseStreak() != 0) {
+                        currentTarget += configParameters.getAdjustTargetOnLooseStreak();
+                        System.out.println("Loose streak of " + currentLooseStreak + " ! Adjusting target: " + configParameters.getAdjustTargetOnLooseStreak() +
+                                " New target: " + currentTarget);
                     } else {
                         betAmount = configParameters.getBaseBet();
                     }
@@ -110,6 +120,11 @@ public class PrimeDice {
                     currentLooseStreak = 0;
                     betAmount = configParameters.getBaseBet();
                     isLooseStreak = false;
+                    if (configParameters.getCondition().equals("<") && currentTarget > configParameters.getTarget()) {
+                        currentTarget -= configParameters.getAdjustTargetOnLooseStreak();
+                    } else if (configParameters.getCondition().equals(">") && currentTarget < configParameters.getTarget()) {
+                        currentTarget += configParameters.getAdjustTargetOnLooseStreak();
+                    }
                 }
                 Thread.sleep(300);
             } catch (Exception e) {
@@ -152,7 +167,7 @@ public class PrimeDice {
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("amount", String.valueOf(betAmount)));
-        params.add(new BasicNameValuePair("target", String.valueOf(configParameters.getTarget())));
+        params.add(new BasicNameValuePair("target", String.valueOf(currentTarget)));
         params.add(new BasicNameValuePair("condition", configParameters.getCondition()));
         post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
