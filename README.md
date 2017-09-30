@@ -9,7 +9,7 @@ Uses org.json (https://github.com/stleary/JSON-java) and Apache HTTPComponents (
 - Considerably faster autobet
 - Pre-roll
 - Automated seed change
-- Limit of loose streaks
+- Flexible target adjustment on loose streaks
 
 <b>To use the bot:</b>
 - Retrieve your API key at: https://primedice.com/api
