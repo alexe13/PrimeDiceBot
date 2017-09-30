@@ -1,7 +1,6 @@
 # PrimeDiceBot
 
 This is a console bitcoin betting bot for PrimeDice.com.
-Uses org.json (https://github.com/stleary/JSON-java) and Apache HTTPComponents (http://hc.apache.org/) libraries.
 
 <b>I am not responsible for any losses that may occur using this bot. Please make sure to test it on small amounts to learn how it works</b>
 
