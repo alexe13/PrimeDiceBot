@@ -94,9 +94,12 @@ public class PrimeDice {
                     }
                 }
 
-                if (configParameters.getMaxLooseStreak() > 0 && currentLooseStreak >= configParameters.getMaxLooseStreak() && configParameters.getPreBet() == 0) {
+                if (configParameters.getMaxLooseStreak() > 0 && currentLooseStreak >= configParameters.getMaxLooseStreak()) {
                     if (configParameters.getAdjustTargetOnLooseStreak() != 0) {
                         currentTarget += configParameters.getAdjustTargetOnLooseStreak();
+                        if (currentTarget > 98) {
+                            currentTarget = 98;
+                        }
                         System.out.println("Loose streak of " + currentLooseStreak + " ! Adjusting target: " + configParameters.getAdjustTargetOnLooseStreak() +
                                 " New target: " + currentTarget);
                     } else {
@@ -188,7 +191,7 @@ public class PrimeDice {
             JSONObject jsonBet = new JSONObject(apiOutput).getJSONObject("bet");
             Bet bet = new Bet();
             bet.parseBet(jsonBet);
-            Bet.setRollNumber(bet.getRollNumber()+1);
+            Bet.setRollNumber(Bet.getRollNumber()+1);
             bet.setSessionProfit(bet.getSessionProfit()+bet.getProfit());
 
             return bet;

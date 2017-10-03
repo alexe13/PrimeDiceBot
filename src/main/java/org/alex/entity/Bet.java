@@ -62,7 +62,7 @@ public class Bet {
         String profitFormat = String.format("%1$-9s", getProfit());
         String sessionProfitFormat = String.format("%1$-20s", getSessionProfit()+"/"+ConfigParameters.getInstance().getProfitTarget());
 
-        System.out.println("№:" + numberFormat + " "
+        System.out.println("#:" + numberFormat + " "
                 + getCondition() + getTarget() +
                 "    Amount: " + amountFormat +
                 " Roll: " + rollFormat + " "
