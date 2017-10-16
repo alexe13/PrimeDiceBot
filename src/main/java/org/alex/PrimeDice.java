@@ -126,7 +126,7 @@ public class PrimeDice {
                     if (configParameters.getCondition().equals("<") && currentTarget > configParameters.getTarget()) {
                         currentTarget -= configParameters.getAdjustTargetOnLooseStreak();
                     } else if (configParameters.getCondition().equals(">") && currentTarget < configParameters.getTarget()) {
-                        currentTarget += configParameters.getAdjustTargetOnLooseStreak();
+                        currentTarget -= configParameters.getAdjustTargetOnLooseStreak();
                     }
                 }
                 Thread.sleep(300);
